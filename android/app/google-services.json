@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "856358370049",
+    "project_id": "just-aqua-4de0e",
+    "storage_bucket": "just-aqua-4de0e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:856358370049:android:62032d4a768a74bac5b900",
+        "android_client_info": {
+          "package_name": "com.example.just_aqua_01"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAFCpwojwvNfWbmT9ZOMAY6ZsuZ4oVQpC8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
