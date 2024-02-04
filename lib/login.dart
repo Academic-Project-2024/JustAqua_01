@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:just_aqua_01/signup.dart';
-import 'package:just_aqua_01/LandingPage.dart';
+import 'package:just_aqua_01/landingPage.dart';
 
 class LoginPage extends StatelessWidget {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,11 +75,63 @@ class LoginPage extends StatelessWidget {
                       child: MaterialButton(
                         minWidth: double.infinity,
                         height: 60,
-                        onPressed: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => LandingPage()));
+                        onPressed: () async {
+                          // Get values from text fields
+                          String enteredEmail =
+                              emailController.text.trim(); // Trim whitespace
+                          String enteredPassword =
+                              passwordController.text.trim(); // Trim whitespace
+
+                          try {
+                            UserCredential userCredential =
+                                await _auth.signInWithEmailAndPassword(
+                              email: enteredEmail,
+                              password: enteredPassword,
+                            );
+
+                            // Check if the authentication is successful
+                            if (userCredential.user != null) {
+                              // Authentication successful, navigate to the landing page
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => LandingPage(),
+                                ),
+                              );
+                            } else {
+                              // Authentication failed
+                              print('Invalid email or password');
+                              // Show error message
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Invalid email or password',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              // Clear input fields
+                              emailController.clear();
+                              passwordController.clear();
+                            }
+                          } catch (e) {
+                            // Handle authentication errors
+                            print('Error during authentication: $e');
+                            // Show error message
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Error during authentication',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                            // Clear input fields
+                            emailController.clear();
+                            passwordController.clear();
+                          }
                         },
                         color: Color(0xff0095FF),
                         elevation: 0,
@@ -160,6 +215,7 @@ Widget inputFile({label, obscureText = false}) {
       TextField(
         obscureText: obscureText,
         style: TextStyle(color: Colors.white),
+        controller: obscureText ? passwordController : emailController,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
           enabledBorder: OutlineInputBorder(
@@ -177,3 +233,6 @@ Widget inputFile({label, obscureText = false}) {
     ],
   );
 }
+
+TextEditingController emailController = TextEditingController();
+TextEditingController passwordController = TextEditingController();

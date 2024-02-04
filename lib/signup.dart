@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:just_aqua_01/LandingPage.dart';
 import 'package:just_aqua_01/login.dart';
 
 void main() {
@@ -8,7 +11,18 @@ void main() {
   ));
 }
 
+// ignore: must_be_immutable
 class SignupPage extends StatelessWidget {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  String username = '';
+  String email = '';
+  String password = '';
+  String confirmPassword = '';
+
+  SignupPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,10 +79,28 @@ class SignupPage extends StatelessWidget {
               ),
               Column(
                 children: <Widget>[
-                  inputFile(label: "Username"),
-                  inputFile(label: "Email"),
-                  inputFile(label: "Password", obscureText: true),
-                  inputFile(label: "Confirm Password", obscureText: true),
+                  inputFile(
+                      label: "Username",
+                      onChanged: (value) {
+                        username = value;
+                      }),
+                  inputFile(
+                      label: "Email",
+                      onChanged: (value) {
+                        email = value;
+                      }),
+                  inputFile(
+                      label: "Password",
+                      obscureText: true,
+                      onChanged: (value) {
+                        password = value;
+                      }),
+                  inputFile(
+                      label: "Confirm Password",
+                      obscureText: true,
+                      onChanged: (value) {
+                        confirmPassword = value;
+                      }),
                 ],
               ),
               Container(
@@ -76,7 +108,41 @@ class SignupPage extends StatelessWidget {
                 child: MaterialButton(
                   minWidth: double.infinity,
                   height: 60,
-                  onPressed: () {},
+                  onPressed: () async {
+                    if (password == confirmPassword) {
+                      // Passwords match, proceed with signup
+                      try {
+                        UserCredential userCredential =
+                            await _auth.createUserWithEmailAndPassword(
+                          email: email,
+                          password: password,
+                        );
+
+                        // Store additional user data in Firestore
+                        await _firestore
+                            .collection('users')
+                            .doc(userCredential.user!.uid)
+                            .set({
+                          'username': username,
+                          'email': email,
+                        });
+
+                        // Navigate to the login page or another screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LandingPage(),
+                          ),
+                        );
+                      } catch (e) {
+                        // Handle registration errors
+                        print('Error during registration: $e');
+                      }
+                    } else {
+                      // Passwords do not match, show an error or handle as needed
+                      print('Passwords do not match');
+                    }
+                  },
                   color: Color(0xff0095FF),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
@@ -93,30 +159,31 @@ class SignupPage extends StatelessWidget {
                 ),
               ),
               InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LoginPage(),
-                      ),
-                    );
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text("Already have an account?",
-                          style: TextStyle(
-                              color: Colors.white)), // Set text color to white
-                      Text(
-                        " Login",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LoginPage(),
+                    ),
+                  );
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text("Already have an account?",
                         style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 18,
-                          color: Colors.blue,
-                        ),
-                      )
-                    ],
-                  ))
+                            color: Colors.white)), // Set text color to white
+                    Text(
+                      " Login",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                        color: Colors.blue,
+                      ),
+                    )
+                  ],
+                ),
+              )
             ],
           ),
         ),
@@ -126,7 +193,7 @@ class SignupPage extends StatelessWidget {
 }
 
 // Widget for text field
-Widget inputFile({label, obscureText = false}) {
+Widget inputFile({label, obscureText = false, onChanged}) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: <Widget>[
@@ -144,6 +211,7 @@ Widget inputFile({label, obscureText = false}) {
       TextField(
         obscureText: obscureText,
         style: TextStyle(color: Colors.white), // Set text color to white
+        onChanged: onChanged,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
           enabledBorder: OutlineInputBorder(
